@@ -48,6 +48,7 @@ app.notFound((c) => c.json({ error: "Halaman yang kamu akses tidak ada" }, 404))
 
 app.onError((c) => c.json({ error: "Terjadi kesalahan pada server" }, 500));
 
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 4000);
 console.log(`Server running on http://localhost:${port}`);
 serve({ fetch: app.fetch, hostname: "127.0.0.1", port });
+

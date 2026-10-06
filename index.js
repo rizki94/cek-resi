@@ -1,6 +1,11 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { getCSRFData, encryptTimers, getResiTracking } from "./function.js";
+import {
+  getCSRFData,
+  encryptTimers,
+  getResiTracking,
+  getSpxTracking,
+} from "./function.js";
 
 const app = new Hono();
 
@@ -11,6 +16,17 @@ app.get("/cek-resi/:number", async (c) => {
   }
 
   try {
+    const courier = c.req.query("courier")?.toLowerCase() || "";
+    if (
+      courier === "spx" ||
+      courier.startsWith("spx ") ||
+      courier.startsWith("shopee express") ||
+      courier.startsWith("shopee xpress")
+    ) {
+      const trackingData = await getSpxTracking(number);
+      return c.json({ status: 200, data: trackingData });
+    }
+
     const csrf = await getCSRFData(number);
     const timers = await encryptTimers(number);
     const trackingData = await getResiTracking(number, csrf, timers);
@@ -32,6 +48,6 @@ app.notFound((c) => c.json({ error: "Halaman yang kamu akses tidak ada" }, 404))
 
 app.onError((c) => c.json({ error: "Terjadi kesalahan pada server" }, 500));
 
-const port = 3000;
+const port = Number(process.env.PORT || 3000);
 console.log(`Server running on http://localhost:${port}`);
-serve({ fetch: app.fetch, port });
+serve({ fetch: app.fetch, hostname: "127.0.0.1", port });

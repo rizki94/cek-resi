@@ -7,6 +7,7 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
 - Mendukung pelacakan untuk berbagai ekspedisi di Indonesia, seperti JNE, J&T, SiCepat, POS Indonesia, dan lainnya.
 - Mengembalikan informasi detail pengiriman, termasuk riwayat perjalanan paket.
 - Memberikan respons dalam format JSON yang mudah diintegrasikan.
+- Mendukung pelacakan Shopee Express (SPX) Indonesia.
 
 ---
 
@@ -45,11 +46,18 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
    **Parameter:**
 
    - `noresi`: Nomor resi pengiriman.
+   - `courier`: Opsional. Gunakan `spx` untuk melacak Shopee Express Indonesia.
 
    **Contoh Request:**
 
    ```bash
    curl http://localhost:3000/cek-resi/023423949234324
+   ```
+
+   Contoh SPX:
+
+   ```bash
+   curl "http://localhost:3000/cek-resi/SPX123456789?courier=spx"
    ```
 
    **Contoh Respons Berhasil:**
@@ -159,6 +167,7 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
 ## Catatan
 
 - **Batasan:** API ini bergantung pada struktur HTML dari situs web jasa pengiriman. Jika ada perubahan pada struktur HTML, scraper mungkin perlu diperbarui.
+- **SPX:** Pelacakan menggunakan endpoint publik situs SPX Indonesia tanpa API key. Endpoint ini bukan kontrak API resmi untuk integrasi pihak ketiga dan dapat berubah sewaktu-waktu.
 - **Penggunaan Pribadi:** API ini dirancang untuk keperluan pribadi atau pengembangan. Pastikan untuk mematuhi kebijakan penggunaan dari setiap ekspedisi.
 
 ---

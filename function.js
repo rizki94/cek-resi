@@ -111,4 +111,85 @@ const getResiTracking = (number, csrf, timers) =>
     }
   });
 
-export { getCSRFData, encryptTimers, getResiTracking };
+const normalizeSpxResponse = (payload, number) => {
+  if (payload?.retcode !== 0 || !payload?.data) {
+    return {
+      valid: false,
+      message: payload?.message || "Data resi SPX tidak ditemukan",
+    };
+  }
+
+  const trackingInfo = payload.data.sls_tracking_info || {};
+  const records = trackingInfo.records || payload.data.tracking_list || [];
+  const trackingRecords = Array.isArray(records) ? records : [];
+  const orderedRecords = [...trackingRecords].sort((left, right) => {
+    const leftTime = Number(left.actual_time || left.timestamp || 0);
+    const rightTime = Number(right.actual_time || right.timestamp || 0);
+    return rightTime - leftTime;
+  });
+  const latest = orderedRecords[0] || {};
+  const perjalanan = orderedRecords.map((record) => {
+    const timestamp = Number(record.actual_time || record.timestamp || 0);
+    const tanggal = timestamp
+      ? new Date(timestamp < 1000000000000 ? timestamp * 1000 : timestamp).toISOString()
+      : "";
+
+    return {
+      tanggal,
+      keterangan:
+        record.tracking_name ||
+        record.tracking_info ||
+        record.description ||
+        record.message ||
+        record.tracking_code ||
+        "Status pengiriman diperbarui",
+    };
+  });
+
+  return {
+    valid: true,
+    data: {
+      expedisi: "Shopee Express (SPX)",
+      noResi: payload.data.order_info?.spx_tn || number.trim(),
+      status:
+        latest.tracking_name ||
+        latest.tracking_info ||
+        latest.description ||
+        latest.message ||
+        "Dalam proses",
+      tanggalKirim: "",
+      penerima: latest.location || "",
+      perjalanan,
+    },
+  };
+};
+
+const getSpxTracking = async (number) => {
+  const response = await axios.get(
+    "https://spx.co.id/shipment/order/open/order/get_order_info",
+    {
+      params: {
+        spx_tn: number.trim(),
+        language_code: "id",
+      },
+      timeout: 15000,
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Accept-Language": "id-ID,id;q=0.9",
+        Referer: "https://spx.co.id/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      },
+    }
+  );
+
+  return normalizeSpxResponse(response.data, number);
+};
+
+export {
+  getCSRFData,
+  encryptTimers,
+  getResiTracking,
+  getSpxTracking,
+  normalizeSpxResponse,
+};

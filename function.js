@@ -9,19 +9,17 @@ const encryptTimers = (number) =>
       ManualJS.jun.Des.parse("79540e250fdb16afac03e19c46dbdeb3"),
       { ii: ManualJS.jun.Des.parse("eb2bb9425e81ffa942522e4414e95bd0") }
     ).rabbittext.toString(ManualJS.jun.Text21);
-    resolve(encodeURIComponent(result));
+    resolve(result);
   });
 
 const getCSRFData = async (number) => {
-  const response = await axios.get(
-    `https://cekresi.com/?noresi=${number}&e=JET`,
-    {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      },
+  const response = await axios.get("https://cekresi.com/", {
+    params: { noresi: number, e: "JET" },
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     }
-  );
+  });
 
   const $ = cheerio.load(response.data);
   const viewstate = $('input[name="viewstate"]').val();
@@ -69,47 +67,54 @@ const scrapeResiData = (html) => {
   };
 };
 
-const getResiTracking = (number, csrf, timers) =>
-  new Promise(async (resolve, reject) => {
-    try {
-      const postData = `viewstate=${csrf.viewstate}&secret_key=${csrf.secret_key}&e=JET&noresi=${number}&timers=${timers}`;
-      const getResponse = await axios.post(
-        `https://apa2.cekresi.com/cekresi/resi/initialize.php?ui=dad9643acec71f85853608db54345ada&p=1&w=chfj6h`,
-        postData,
-        {
-          method: "POST",
-          headers: {
-            Host: "apa2.cekresi.com",
-            "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:87.0) Gecko/20100101 Firefox/87.0",
-            Accept: "*/*",
-            "Accept-Language": "id,en-US;q=0.7,en;q=0.3",
-            "Accept-Encoding": "gzip, deflate",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "Content-Length": "124",
-            Origin: "https://cekresi.com",
-            Referer: "https://cekresi.com/",
-            "Cache-Control": "max-age=0",
-          },
-        }
-      );
-      const resiData = scrapeResiData(getResponse.data);
+const hasTrackingData = (tracking) => {
+  const hasIdentity = Boolean(
+    String(tracking.expedisi || "").trim() ||
+      String(tracking.noResi || "").trim()
+  );
+  const hasStatus = Boolean(String(tracking.status || "").trim());
+  const hasHistory = tracking.perjalanan.some((event) =>
+    Boolean(String(event.keterangan || "").trim())
+  );
 
-      if (resiData) {
-        resolve({
-          valid: true,
-          data: resiData,
-        });
-      } else {
-        resolve({
-          valid: false,
-          message: "Data tidak valid atau tidak ditemukan",
-        });
-      }
-    } catch (err) {
-      reject({ valid: false, error: err.message });
-    }
+  return hasIdentity && (hasStatus || hasHistory);
+};
+
+const getResiTracking = async (number, csrf, timers) => {
+  const postData = new URLSearchParams({
+    viewstate: csrf.viewstate || "",
+    secret_key: csrf.secret_key || "",
+    e: "JET",
+    noresi: number,
+    timers,
   });
+  const response = await axios.post(
+    "https://apa2.cekresi.com/cekresi/resi/initialize.php?ui=dad9643acec71f85853608db54345ada&p=1&w=chfj6h",
+    postData.toString(),
+    {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:87.0) Gecko/20100101 Firefox/87.0",
+        Accept: "*/*",
+        "Accept-Language": "id,en-US;q=0.7,en;q=0.3",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        Origin: "https://cekresi.com",
+        Referer: "https://cekresi.com/",
+        "Cache-Control": "max-age=0",
+      },
+    }
+  );
+  const tracking = scrapeResiData(response.data);
+
+  if (!hasTrackingData(tracking)) {
+    return {
+      valid: false,
+      message: "Data pelacakan kosong atau tidak ditemukan",
+    };
+  }
+
+  return { valid: true, data: tracking };
+};
 
 const normalizeSpxResponse = (payload, number) => {
   if (payload?.retcode !== 0 || !payload?.data) {
@@ -190,6 +195,7 @@ export {
   getCSRFData,
   encryptTimers,
   getResiTracking,
+  hasTrackingData,
   getSpxTracking,
   normalizeSpxResponse,
 };

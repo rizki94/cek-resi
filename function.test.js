@@ -1,6 +1,30 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeSpxResponse } from "./function.js";
+import { hasTrackingData, normalizeSpxResponse } from "./function.js";
+
+test("rejects an empty non-SPX tracking result", () => {
+  assert.equal(
+    hasTrackingData({
+      expedisi: "",
+      noResi: "",
+      status: "",
+      perjalanan: [],
+    }),
+    false
+  );
+});
+
+test("accepts a non-SPX result with a courier, AWB, and status", () => {
+  assert.equal(
+    hasTrackingData({
+      expedisi: "JNE Express",
+      noResi: "TEST123456789",
+      status: "On Process",
+      perjalanan: [],
+    }),
+    true
+  );
+});
 
 test("normalizes successful SPX tracking details and event history", () => {
   const result = normalizeSpxResponse(

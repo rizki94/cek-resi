@@ -9,6 +9,10 @@ import {
 
 const app = new Hono();
 
+app.get("/health", (c) => {
+  return c.json({ status: "ok", service: "cek-resi" });
+});
+
 app.get("/cek-resi/:number", async (c) => {
   const number = c.req.param("number");
   if (!number || number.trim() === "") {
@@ -48,7 +52,6 @@ app.notFound((c) => c.json({ error: "Halaman yang kamu akses tidak ada" }, 404))
 
 app.onError((c) => c.json({ error: "Terjadi kesalahan pada server" }, 500));
 
-const port = Number(process.env.PORT || 4000);
+const port = Number(process.env.PORT || 4001);
 console.log(`Server running on http://localhost:${port}`);
 serve({ fetch: app.fetch, hostname: "127.0.0.1", port });
-

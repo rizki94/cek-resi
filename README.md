@@ -32,7 +32,7 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
    ```bash
    node index.js
    ```
-   Server akan berjalan di `http://localhost:3000`.
+   Server akan berjalan di `http://localhost:4001`.
 
 ---
 
@@ -51,13 +51,13 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
    **Contoh Request:**
 
    ```bash
-   curl http://localhost:3000/cek-resi/023423949234324
+   curl http://localhost:4001/cek-resi/023423949234324
    ```
 
    Contoh SPX:
 
    ```bash
-   curl "http://localhost:3000/cek-resi/SPX123456789?courier=spx"
+   curl "http://localhost:4001/cek-resi/SPX123456789?courier=spx"
    ```
 
    **Contoh Respons Berhasil:**
@@ -120,7 +120,7 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
    **Contoh Request:**
 
    ```bash
-   curl http://localhost:3000/
+   curl http://localhost:4001/
    ```
 
    **Contoh Respons:**

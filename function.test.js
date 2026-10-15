@@ -34,12 +34,39 @@ test("rejects an empty non-SPX tracking result", () => {
   );
 });
 
-test("accepts a non-SPX result with a courier, AWB, and status", () => {
+test("rejects a generic status without dated tracking events", () => {
   assert.equal(
     hasTrackingData({
       expedisi: "JNE Express",
       noResi: "TEST123456789",
       status: "On Process",
+      penerima: "(On Process)",
+      perjalanan: [{ tanggal: "-", keterangan: "Dalam pengiriman" }],
+    }),
+    false
+  );
+});
+
+test("accepts a generic status when dated tracking events are available", () => {
+  assert.equal(
+    hasTrackingData({
+      expedisi: "JNE Express",
+      noResi: "TEST123456789",
+      status: "On Process",
+      perjalanan: [
+        { tanggal: "2026-10-15 16:45", keterangan: "Paket tiba di hub" },
+      ],
+    }),
+    true
+  );
+});
+
+test("accepts a specific terminal status without tracking history", () => {
+  assert.equal(
+    hasTrackingData({
+      expedisi: "JNE Express",
+      noResi: "TEST123456789",
+      status: "Delivered",
       perjalanan: [],
     }),
     true

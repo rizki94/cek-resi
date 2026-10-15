@@ -67,6 +67,10 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
    curl "http://localhost:4001/cek-resi/ANT123456789?courier=anteraja"
    ```
 
+   Respons `valid: false` berarti provider tidak mengembalikan progres yang cukup
+   terperinci untuk memastikan status kiriman; status generik tanpa riwayat
+   bertanggal tidak dianggap sebagai hasil pelacakan berhasil.
+
    **Contoh Respons Berhasil:**
 
    ```json

@@ -96,12 +96,19 @@ const hasTrackingData = (tracking) => {
     String(tracking.expedisi || "").trim() ||
       String(tracking.noResi || "").trim()
   );
-  const hasStatus = Boolean(String(tracking.status || "").trim());
-  const hasHistory = tracking.perjalanan.some((event) =>
-    Boolean(String(event.keterangan || "").trim())
+  const status = String(tracking.status || "").trim();
+  const hasSpecificStatus = Boolean(status) &&
+    !/^(on process|in process|dalam proses|dalam pengiriman)$/i.test(status);
+  const hasDetailedHistory = tracking.perjalanan.some((event) =>
+    Boolean(String(event.keterangan || "").trim()) &&
+      Boolean(String(event.tanggal || "").trim()) &&
+      !/^[-–—]$/.test(String(event.tanggal).trim()) &&
+      !/^(dalam pengiriman|on process|in process)$/i.test(
+        String(event.keterangan).trim()
+      )
   );
 
-  return hasIdentity && (hasStatus || hasHistory);
+  return hasIdentity && (hasSpecificStatus || hasDetailedHistory);
 };
 
 const getResiTracking = async (number, csrf, timers, courierCode) => {
@@ -133,7 +140,8 @@ const getResiTracking = async (number, csrf, timers, courierCode) => {
   if (!hasTrackingData(tracking)) {
     return {
       valid: false,
-      message: "Data pelacakan kosong atau tidak ditemukan",
+      message:
+        "Data pelacakan tidak memiliki status spesifik atau riwayat pengiriman terperinci",
     };
   }
 

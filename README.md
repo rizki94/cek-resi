@@ -46,7 +46,7 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
    **Parameter:**
 
    - `noresi`: Nomor resi pengiriman.
-   - `courier`: Opsional. Gunakan `spx` untuk melacak Shopee Express Indonesia.
+   - `courier`: Kode ekspedisi. Wajib diisi untuk JNE, J&T, Anteraja, dan Shopee Express.
 
    **Contoh Request:**
 
@@ -58,6 +58,13 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
 
    ```bash
    curl "http://localhost:4001/cek-resi/SPX123456789?courier=spx"
+   ```
+
+   Contoh JNE dan Anteraja:
+
+   ```bash
+   curl "http://localhost:4001/cek-resi/JNE123456789?courier=jne"
+   curl "http://localhost:4001/cek-resi/ANT123456789?courier=anteraja"
    ```
 
    **Contoh Respons Berhasil:**
@@ -138,21 +145,9 @@ API sederhana untuk melacak nomor resi dari berbagai jasa pengiriman di Indonesi
 ## Ekspedisi yang Didukung
 
 - **JNE**
-- **J&T**
-- **ID Express**
-- **POS Indonesia**
-- **Ninja Xpress**
+- **J&T Express**
 - **Anteraja**
-- **Lion Parcel**
-- **Paxel**
-- **SAP Express**
-- **Lazada Express**
-- **Lazada Logistics**
-- **JDL Express**
-- **JX/J-Express**
-- **Kerry Express**
-- **SF Express**
-- Dan lainnya (dapat ditambahkan sesuai kebutuhan).
+- **Shopee Express (SPX)**
 
 ---
 

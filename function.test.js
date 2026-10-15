@@ -1,6 +1,26 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hasTrackingData, normalizeSpxResponse } from "./function.js";
+import {
+  getProviderCourierCode,
+  hasTrackingData,
+  normalizeSpxResponse,
+} from "./function.js";
+
+test("maps supported courier names to cekresi.com provider codes", () => {
+  assert.equal(getProviderCourierCode("jne"), "JNE");
+  assert.equal(getProviderCourierCode("JNE Express"), "JNE");
+  assert.equal(getProviderCourierCode("anteraja"), "ANTERAJA");
+  assert.equal(getProviderCourierCode("Anteraja Express"), "ANTERAJA");
+  assert.equal(getProviderCourierCode("jnt"), "JET");
+  assert.equal(getProviderCourierCode("J&T Express"), "JET");
+});
+
+test("rejects unknown courier names instead of using the wrong carrier", () => {
+  assert.throws(
+    () => getProviderCourierCode("unknown courier"),
+    /Unsupported courier/
+  );
+});
 
 test("rejects an empty non-SPX tracking result", () => {
   assert.equal(

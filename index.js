@@ -5,6 +5,7 @@ import {
   encryptTimers,
   getResiTracking,
   getSpxTracking,
+  getProviderCourierCode,
 } from "./function.js";
 
 const app = new Hono();
@@ -20,7 +21,7 @@ app.get("/cek-resi/:number", async (c) => {
   }
 
   try {
-    const courier = c.req.query("courier")?.toLowerCase() || "";
+    const courier = c.req.query("courier")?.trim().toLowerCase() || "";
     if (
       courier === "spx" ||
       courier.startsWith("spx ") ||
@@ -31,9 +32,19 @@ app.get("/cek-resi/:number", async (c) => {
       return c.json({ status: 200, data: trackingData });
     }
 
+    let courierCode;
+    try {
+      courierCode = getProviderCourierCode(courier);
+    } catch (error) {
+      return c.json({
+        status: 400,
+        data: { valid: false, message: error.message },
+      }, 400);
+    }
+
     const csrf = await getCSRFData(number);
     const timers = await encryptTimers(number);
-    const trackingData = await getResiTracking(number, csrf, timers);
+    const trackingData = await getResiTracking(number, csrf, timers, courierCode);
     return c.json({ status: 200, data: trackingData });
   } catch (error) {
     console.error("Error:", error.message);

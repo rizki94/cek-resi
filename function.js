@@ -2,6 +2,30 @@ import ManualJS from "./manual.js";
 import axios from "axios";
 import * as cheerio from "cheerio";
 
+const getProviderCourierCode = (courier) => {
+  const normalizedCourier = String(courier || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+  const courierCodes = new Map([
+    ["jne", "JNE"],
+    ["jneexpress", "JNE"],
+    ["jnt", "JET"],
+    ["jt", "JET"],
+    ["jtexpress", "JET"],
+    ["anteraja", "ANTERAJA"],
+    ["anterajaexpress", "ANTERAJA"],
+  ]);
+
+  const providerCode = courierCodes.get(normalizedCourier);
+  if (!providerCode) {
+    throw new Error(`Unsupported courier: ${courier || "(empty)"}`);
+  }
+
+  return providerCode;
+};
+
 const encryptTimers = (number) =>
   new Promise((resolve, reject) => {
     const result = ManualJS.MDX.goinstring(
@@ -14,7 +38,7 @@ const encryptTimers = (number) =>
 
 const getCSRFData = async (number) => {
   const response = await axios.get("https://cekresi.com/", {
-    params: { noresi: number, e: "JET" },
+    params: { noresi: number },
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -80,11 +104,11 @@ const hasTrackingData = (tracking) => {
   return hasIdentity && (hasStatus || hasHistory);
 };
 
-const getResiTracking = async (number, csrf, timers) => {
+const getResiTracking = async (number, csrf, timers, courierCode) => {
   const postData = new URLSearchParams({
     viewstate: csrf.viewstate || "",
     secret_key: csrf.secret_key || "",
-    e: "JET",
+    e: courierCode,
     noresi: number,
     timers,
   });
@@ -195,6 +219,7 @@ export {
   getCSRFData,
   encryptTimers,
   getResiTracking,
+  getProviderCourierCode,
   hasTrackingData,
   getSpxTracking,
   normalizeSpxResponse,
